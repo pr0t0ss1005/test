@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지구 물리학적 계산기</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #555;
+            margin: 25px 0 15px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #eee;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .input-group label {
+            min-width: 200px;
+            font-weight: 500;
+            color: #555;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .unit {
+            min-width: 40px;
+            color: #666;
+            font-size: 14px;
+        }
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+        }
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .result-label {
+            font-weight: 500;
+            color: #555;
+        }
+        .result-value {
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="https://pr0t0ss1005.github.io/gravity.github.io/" class="button">BACK</a>
+        <h2>🌍 지구 물리학적 계산기(지구상공)</h2>
+        <div class="section-title">지구 타원체 정보</div>
+        <div class="input-group">
+            <label for="semiMajorAxis">장반축 (Semi-Major Axis):</label>
+            <input type="number" id="semiMajorAxis" placeholder="6378137.0" step="0.001">
+            <span class="unit">m</span>
+        </div>
+
+        <div class="input-group">
+            <label for="semiMinorAxis">단반축 (Semi-Minor Axis):</label>
+            <input type="number" id="semiMinorAxis" placeholder="6356752.314245" step="0.001">
+            <span class="unit">m</span>
+        </div>
+
+        <div class="section-title">위치 정보</div>
+        <div class="input-group">
+            <label for="latitude">위도 (Latitude):</label>
+            <input type="number" id="latitude" placeholder="37.5665" step="0.000001">
+            <span class="unit">°</span>
+        </div>
+
+        <div class="input-group">
+            <label for="longitude">경도 (Longitude):</label>
+            <input type="number" id="longitude" placeholder="126.9780" step="0.000001">
+            <span class="unit">°</span>
+        </div>
+
+        <div class="input-group">
+            <label for="height">지면의 타원체 높이:</label>
+            <input type="number" id="height" placeholder="150.0" step="0.001">
+            <span class="unit">m</span>
+        </div>
+
+        <div class="input-group">
+            <label for="altitude">고도:</label>
+            <input type="number" id="altitude" placeholder="0.0" step="0.1">
+            <span class="unit">m</span>
+        </div>
+
+        <div class="section-title">밀도 정보</div>
+        <div class="input-group">
+            <label for="earthDensity">지구 평균 밀도:</label>
+            <input type="number" id="earthDensity" placeholder="5513.0" step="0.01">
+            <span class="unit">kg/m³</span>
+        </div>
+
+        <div class="input-group">
+            <label for="atmDensity">대기 밀도:</label>
+            <input type="number" id="atmDensity" placeholder="1.225" step="0.001">
+            <span class="unit">kg/m³</span>
+        </div>
+
+        <button class="calculate-btn" onclick="calculateResults()">🔬 계산하기</button>
+
+        <div id="results" class="results" style="display: none;">
+            <div class="section-title">📊 계산 결과</div>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        function calculateResults() {
+            // 입력값 가져오기 - altitude ID 수정
+            const a = parseFloat(document.getElementById('semiMajorAxis').value) || 6378137.0;
+            const b = parseFloat(document.getElementById('semiMinorAxis').value) || 6356752.314245;
+            const lat = parseFloat(document.getElementById('latitude').value) || 37.5665;
+            const lon = parseFloat(document.getElementById('longitude').value) || 126.9780;
+            const h = parseFloat(document.getElementById('height').value) || 150.0;
+            const alt = parseFloat(document.getElementById('altitude').value) || 0.0; // 수정됨
+            const earthDensity = parseFloat(document.getElementById('earthDensity').value) || 5513.0;
+            const atmDensity = parseFloat(document.getElementById('atmDensity').value) || 1.225;
+
+            // 디버깅을 위한 콘솔 출력
+            console.log('Input values:', { a, b, lat, lon, h, alt, earthDensity, atmDensity });
+
+            // 계산 수행
+            const results = performCalculations(a, b, lat, lon, h, alt, earthDensity, atmDensity);
+
+            // 결과 표시
+            displayResults(results);
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI / 180);
+        }
+
+        function performCalculations(a, b, lat, lon, h, alt, earthDensity, atmDensity) {
+            // 각도를 라디안으로 변환
+            const latRad = lat * Math.PI / 180;
+            const lonRad = lon * Math.PI / 180;
+            
+            // 이심률 계산
+            const e2 = 1 - (b * b) / (a * a);  // 제1이심률의 제곱
+            const e_prime2 = (a * a) / (b * b) - 1;  // 제2이심률의 제곱
+
+            // 편평률
+            const flattening = (a - b) / a;
+
+            // 곡률반지름 계산
+            const N = a / Math.sqrt(1 - e2 * Math.sin(latRad) * Math.sin(latRad));  // 자오선 곡률반지름
+            const M = a * (1 - e2) / Math.pow(1 - e2 * Math.sin(latRad) * Math.sin(latRad), 1.5);  // 묘유선 곡률반지름
+
+            // 직교좌표계 변환 (ECEF)
+            const X = (N + h) * Math.cos(latRad) * Math.cos(lonRad);
+            const Y = (N + h) * Math.cos(latRad) * Math.sin(lonRad);
+            const Z = (N * (1 - e2) + h) * Math.sin(latRad);
+
+            // 거리 계산
+            const distanceFromCenter = Math.sqrt(X * X + Y * Y + Z * Z);
+
+            // 중력 관련 계산
+            const G = 6.67430e-11;  // 중력상수
+            const f = (a - b) / a;
+            const ee = 1 - ((b * b) / (a * a));
+            const lat_rad = deg2rad(lat);
+
+            // Volume and mass calculations
+            const V1_1 = (4 * Math.PI * (a) * (a) * (b) / 3);
+            const M1_1 = V1_1 * earthDensity; // Earth density
+            const CrustDensity = 2670;
+            const V1 = (4 * Math.PI * (a + h) * (a + h) * (b + h) / 3) - V1_1;
+            const M1 = V1 * CrustDensity; // Crust density
+
+
+            // 수정된 부분: Math.pow 사용
+            const V2 = (4 * Math.PI * Math.pow(a + h + alt, 2) * (b + h + alt) / 3) - V1 - V1_1;
+            const M2 = V2 * atmDensity; // atmosphere density. 부게를 적용한 프리에어 보정           
+            
+            const MMM = M1 + M2;
+            const earthMass = M1_1 + M1;
+
+            // Moment of inertia calculations
+            const C = 0.4 * (M1_1 + M1) * (a + h) * (a + h);
+            const A = 0.2 * (M1_1 + M1) * ((a + h) * (a + h) + (b + h) * (b + h));
+            const J2 = (C - A) / ((M1_1 + M1) * (a + h) * (a + h));
+            const m = 2 * f - 3 * J2;
+
+            // Gravity calculations
+            const gamma_p = G * M1 / Math.pow(b + h, 2);
+            const gamma_e = (G * M1 / Math.pow(a + h, 2)) * (1 + (3 / 2) * J2 - m);
+            const nom_p = b * gamma_p - a * gamma_e;
+            const den_p = a * gamma_e;
+            const p = nom_p / den_p;
+
+            // Calculate sin(lat)^2 and sqrt term once
+            const sin_lat = Math.sin(lat_rad);
+            const sin_lat_sq = sin_lat * sin_lat;
+            const sqrt_term = Math.sqrt(1 - ee * sin_lat_sq);
+
+            // Gravity density calculations
+            const gravity_factor = (1 + (3 / 2) * J2 - m) * ((1 + p * sin_lat_sq) / sqrt_term);
+
+            const gamma_density1_1 = (G * M1_1 / Math.pow(a, 2)) * gravity_factor;
+            const gamma_density1 = (G * (M1_1 + M1) / Math.pow(a + h, 2)) * gravity_factor;
+            const gamma_density2 = (G * (M1_1 + M1 + M2) / Math.pow(a + h + alt, 2)) * gravity_factor;
+            const gamma_delta =  gamma_density2 - gamma_density1;
+            const gamma = gamma_density2 + gamma_delta;
+            const gravity = gamma;
+
+            // 디버깅 정보 출력
+            console.log('Calculation results:', {
+                V1, V2, M1, M2, J2, gamma_density1, gamma_density2, gravity
+            });
+
+            return {
+                // 타원체 정보
+                eccentricity1: Math.sqrt(e2),
+                eccentricity2: Math.sqrt(e_prime2),
+                flattening: flattening,
+
+                // 곡률반지름
+                meridianRadius: N,
+                primeVerticalRadius: M,
+
+                // 좌표 정보
+                ecefX: X,
+                ecefY: Y,
+                ecefZ: Z,
+                distanceFromCenter: distanceFromCenter,
+
+                // 물리량
+                estimatedGravity: gravity,
+                earthMass: earthMass,
+                J2: J2,
+                GravityFlatness: p,
+
+                // 입력값 요약
+                inputSummary: {
+                    a, b, lat, lon, h, alt, earthDensity, atmDensity
+                }
+            };
+        }
+
+        function displayResults(results) {
+            const resultDiv = document.getElementById('resultContent');
+
+            resultDiv.innerHTML = `
+                <div class="result-item">
+                    <span class="result-label">제1이심률:</span>
+                    <span class="result-value">${results.eccentricity1.toFixed(8)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">제2이심률:</span>
+                    <span class="result-value">${results.eccentricity2.toFixed(8)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">편평률:</span>
+                    <span class="result-value">${results.flattening.toFixed(10)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">자오선 곡률반지름 (N):</span>
+                    <span class="result-value">${results.meridianRadius.toFixed(3)} m</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">묘유선 곡률반지름 (M):</span>
+                    <span class="result-value">${results.primeVerticalRadius.toFixed(3)} m</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ECEF X 좌표:</span>
+                    <span class="result-value">${results.ecefX.toFixed(3)} m</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ECEF Y 좌표:</span>
+                    <span class="result-value">${results.ecefY.toFixed(3)} m</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">ECEF Z 좌표:</span>
+                    <span class="result-value">${results.ecefZ.toFixed(3)} m</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">지구 중심으로부터 거리:</span>
+                    <span class="result-value">${results.distanceFromCenter.toFixed(3)} m</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">추정 중력가속도:</span>
+                    <span class="result-value">${results.estimatedGravity.toFixed(8)} m/s²</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">J2:</span>
+                    <span class="result-value">${results.J2.toFixed(6)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">중력편평도:</span>
+                    <span class="result-value">${results.GravityFlatness.toFixed(6)}</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">추정 지구 질량:</span>
+                    <span class="result-value">${results.earthMass.toExponential(3)} kg</span>
+                </div>
+            `;
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 페이지 로드 시 기본값으로 계산
+        window.onload = function () {
+            // 기본값 설정
+            document.getElementById('semiMajorAxis').value = 6378137.0;
+            document.getElementById('semiMinorAxis').value = 6356752.314245;
+            document.getElementById('latitude').value = 37.5665;  // 서울 위도
+            document.getElementById('longitude').value = 126.9780;  // 서울 경도
+            document.getElementById('height').value = 150.0;
+            document.getElementById('altitude').value = 0.0;  // 수정됨
+            document.getElementById('earthDensity').value = 5513.0;
+            document.getElementById('atmDensity').value = 1.225;
+            
+            // 자동으로 계산 실행
+            // alculateResults();
+        };
+    </script>
+</body>
+</html>
